@@ -1,7 +1,7 @@
-import {Config as ViewConfig} from "./View/View";
-import {Config as StoreConfig} from "./Store/Store";
-import {Config as TextSelectionHandlerConfig} from "./View/EventHandler/TextSelectionHandler";
-import {Config as TwoLabelsClickedHandlerConfig} from "./View/EventHandler/TwoLabelsClickedHandler";
+import { Config as ViewConfig } from "./View/View";
+import { Config as StoreConfig } from "./Store/Store";
+import { Config as TextSelectionHandlerConfig } from "./View/EventHandler/TextSelectionHandler";
+import { Config as TwoLabelsClickedHandlerConfig } from "./View/EventHandler/TwoLabelsClickedHandler";
 
 export interface ConfigInput {
     readonly contentClasses?: Array<string>;

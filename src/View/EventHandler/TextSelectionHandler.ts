@@ -1,7 +1,7 @@
 import {Annotator} from "../../Annotator";
 import {Line} from "../Entities/Line/Line";
 import {fromNullable} from "../../Infrastructure/Option";
-import {assert} from "../../Infrastructure/Assert";
+import {assert} from "../../Infrastructure/Assert"; 
 
 export interface Config {
     readonly selectingAreaStrip: RegExp | null | undefined

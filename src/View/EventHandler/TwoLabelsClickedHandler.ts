@@ -1,7 +1,7 @@
-import {Annotator} from "../../Annotator";
-import {SVGNS} from "../../Infrastructure/SVGNS";
-import {LabelView} from "../Entities/LabelView/LabelView";
-import {none, Option, some} from "../../Infrastructure/Option";
+import { Annotator } from "../../Annotator";
+import { SVGNS } from "../../Infrastructure/SVGNS";
+import { LabelView } from "../Entities/LabelView/LabelView";
+import { none, Option, some } from "../../Infrastructure/Option";
 
 export interface Config {
     readonly unconnectedLineStyle: "none" | "straight" | "curve";
@@ -10,24 +10,28 @@ export interface Config {
 export class TwoLabelsClickedHandler {
     lastSelection: Option<LabelView.Entity> = none;
     svgElement: SVGPathElement;
-
+    flag: boolean//判断是否开启鼠标抬起事件
     constructor(public root: Annotator, private config: Config) {
+        this.flag = false
         this.svgElement = document.createElementNS(SVGNS, 'path');
         this.svgElement.classList.add(...root.view.config.connectionClasses.map(it => it + "-line"));
         this.svgElement.setAttribute("fill", "none");
         this.svgElement.style.markerEnd = "url(#marker-arrow)";
-        this.root.on('labelClicked', (labelId: number) => {
-            if (this.lastSelection.isSome) {
-                this.root.emit('twoLabelsClicked', this.lastSelection.toNullable()!.id, labelId);
-                this.svgElement.remove();
-                this.svgElement.setAttribute("d", "");
-                this.lastSelection = none;
-            } else {
-                this.lastSelection = some(this.root.view.labelViewRepository.get(labelId));
-                this.root.view.svgElement.insertBefore(this.svgElement, this.root.view.svgElement.firstChild);
-            }
+        this.root.on('labelMouseDown', (labelId: number) => {
+            this.flag = true
+            this.lastSelection = some(this.root.view.labelViewRepository.get(labelId));
+            this.root.view.svgElement.insertBefore(this.svgElement, this.root.view.svgElement.firstChild);
         });
+
+        this.root.on("mouseUp", (labelId: number, e) => {
+
+            this.root.emit('twoLabelsClicked', this.lastSelection.toNullable()!.id, labelId);
+            this.svgElement.remove();
+            this.svgElement.setAttribute("d", "");
+            this.lastSelection = none;
+        })
         this.root.view.svgElement.onmousemove = (e) => {
+
             this.lastSelection.map((fromLabelView: LabelView.Entity) => {
                 const fromLeft = fromLabelView.labelLeft + 1;
                 const fromRight = fromLabelView.labelRight - 1;
@@ -60,6 +64,18 @@ export class TwoLabelsClickedHandler {
                 this.lastSelection = none;
                 e.preventDefault();
             })
+        };
+        this.root.view.svgElement.onmouseup = (e: MouseEvent) => {
+            if ((e.target as HTMLElement).tagName !== "text") {
+                this.lastSelection.map(() => {
+                    this.svgElement.remove();
+                    this.svgElement.setAttribute("d", "");
+                    this.lastSelection = none;
+                    e.preventDefault();
+                })
+            }
+            this.flag && this.root.emit("labelMouseUp");
+            this.flag = false
         };
     }
 }

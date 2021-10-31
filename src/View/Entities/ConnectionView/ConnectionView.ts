@@ -1,11 +1,11 @@
-import {Base} from '../../../Infrastructure/Repository';
-import {SVGNS} from '../../../Infrastructure/SVGNS';
-import {Connection} from '../../../Store/Connection';
-import {View} from '../../View';
-import {LabelView} from '../LabelView/LabelView';
-import {Line} from '../Line/Line';
-import {TopContext} from '../Line/TopContext/TopContext';
-import {TopContextUser} from '../Line/TopContext/TopContextUser';
+import { Base } from '../../../Infrastructure/Repository';
+import { SVGNS } from '../../../Infrastructure/SVGNS';
+import { Connection } from '../../../Store/Connection';
+import { View } from '../../View';
+import { LabelView } from '../LabelView/LabelView';
+import { Line } from '../Line/Line';
+import { TopContext } from '../Line/TopContext/TopContext';
+import { TopContextUser } from '../Line/TopContext/TopContextUser';
 
 export namespace ConnectionView {
   export interface Config {
@@ -18,8 +18,8 @@ export namespace ConnectionView {
     private lineElement: SVGPathElement = null as any;
 
     constructor(
-        private store: Connection.Entity, private contextIn: TopContext,
-        private config: Config) {
+      private store: Connection.Entity, private contextIn: TopContext,
+      private config: Config) {
       super();
     }
 
@@ -53,19 +53,19 @@ export namespace ConnectionView {
 
     get leftLabelView(): LabelView.Entity {
       return this.fromLabelView.labelLeft < this.toLabelView.labelLeft ?
-          this.fromLabelView :
-          this.toLabelView;
+        this.fromLabelView :
+        this.toLabelView;
     }
 
     get rightLabelView(): LabelView.Entity {
       return this.fromLabelView.labelLeft >= this.toLabelView.labelLeft ?
-          this.fromLabelView :
-          this.toLabelView;
+        this.fromLabelView :
+        this.toLabelView;
     }
 
     get middle(): number {
       return (this.leftLabelView.labelLeft + this.rightLabelView.labelRight) /
-          2;
+        2;
     }
 
     get textWidth(): number {
@@ -86,20 +86,20 @@ export namespace ConnectionView {
 
     get lineIncludedLeft(): number {
       return this.fromLabelView.labelLeft < this.toLabelView.labelLeft ?
-          this.fromLabelView.labelLeft :
-          this.toLabelView.labelLeft;
+        this.fromLabelView.labelLeft :
+        this.toLabelView.labelLeft;
     }
 
     get width(): number {
       return this.config.connectionWidthCalcMethod === 'text' ?
-          this.textWidth :
-          this.lineIncludedWidth;
+        this.textWidth :
+        this.lineIncludedWidth;
     }
 
     get left(): number {
       return this.config.connectionWidthCalcMethod === 'text' ?
-          this.textLeft :
-          this.lineIncludedLeft;
+        this.textLeft :
+        this.lineIncludedLeft;
     }
 
     get globalY(): number {
@@ -109,8 +109,8 @@ export namespace ConnectionView {
     render(): SVGGElement {
       this.svgElement = document.createElementNS(SVGNS, 'g') as SVGGElement;
       const textElement = this.view.connectionCategoryElementFactoryRepository
-          .get(this.store.category.id)
-          .create();
+        .get(this.store.category.id)
+        .create();
       this.svgElement.appendChild(textElement);
       this.svgElement.style.cursor = 'pointer';
       this.svgElement.onclick = (event: MouseEvent) => {
@@ -119,17 +119,20 @@ export namespace ConnectionView {
       this.svgElement.ondblclick = (event: MouseEvent) => {
         this.view.root.emit('connectionDoubleClicked', this.id, event);
       };
+
       // todo: lineElement's right click event (configureable)
       this.svgElement.oncontextmenu = (event: MouseEvent) => {
         this.view.root.emit('connectionRightClicked', this.id, event);
         event.preventDefault();
       };
       // todo: lineElement's hover event (configureable)
-      this.svgElement.onmouseenter = () => {
+      this.svgElement.onmouseenter = (event: MouseEvent) => {
         this.svgElement.classList.add('hover');
         this.lineElement.classList.add('hover');
+        this.view.root.emit('connectionMouseHover', true, this.id, event);
       };
-      this.svgElement.onmouseleave = () => {
+      this.svgElement.onmouseleave = (event: MouseEvent) => {
+        this.view.root.emit('connectionMouseHover', false, this.id, event);
         this.svgElement.classList.remove('hover');
         this.lineElement.classList.remove('hover');
       };
@@ -139,7 +142,7 @@ export namespace ConnectionView {
 
     update() {
       this.svgElement.style.transform =
-          `translate(${this.textLeft}px,${this.globalY}px)`;
+        `translate(${this.textLeft}px,${this.globalY}px)`;
       this.updateLine();
     }
 
@@ -160,43 +163,36 @@ export namespace ConnectionView {
 
     private updateLine() {
       const thisY = this.globalY + this.view.topContextLayerHeight / 2 -
-          this.view.labelFont.fontSize + 2;
+        this.view.labelFont.fontSize + 2;
       if (this.fromLabelView.labelLeft < this.toLabelView.labelLeft) {
         this.lineElement.setAttribute(
-            'd',
-            `
-                    M ${this.fromLabelView.labelLeft + 1}   ${
-                this.fromLabelView.globalY + 1}
+          'd',
+          `
+                    M ${this.fromLabelView.labelLeft + 1}   ${this.fromLabelView.globalY + 1}
                     C ${this.fromLabelView.labelLeft - 8}  ${thisY},
                       ${this.fromLabelView.labelLeft - 8}  ${thisY},
                       ${this.fromLabelView.labelLeft + 1}   ${thisY}
-                    L ${
-                this.toLabelView.labelLeft +
-                this.toLabelView.labelWidth} ${thisY}
-                    C ${
-                this.toLabelView.labelLeft + this.toLabelView.labelWidth +
-                8}  ${thisY},
-                      ${
-                this.toLabelView.labelLeft + this.toLabelView.labelWidth +
-                8}  ${thisY},
-                      ${
-                this.toLabelView.labelLeft +
-                this.toLabelView.labelWidth}   ${this.toLabelView.globalY - 1}
+                    L ${this.toLabelView.labelLeft +
+          this.toLabelView.labelWidth} ${thisY}
+                    C ${this.toLabelView.labelLeft + this.toLabelView.labelWidth +
+          8}  ${thisY},
+                      ${this.toLabelView.labelLeft + this.toLabelView.labelWidth +
+          8}  ${thisY},
+                      ${this.toLabelView.labelLeft +
+          this.toLabelView.labelWidth}   ${this.toLabelView.globalY - 1}
                 `);
       } else {
         this.lineElement.setAttribute(
-            'd',
-            `
-                    M ${this.fromLabelView.labelRight - 1}   ${
-                this.fromLabelView.globalY + 1}
+          'd',
+          `
+                    M ${this.fromLabelView.labelRight - 1}   ${this.fromLabelView.globalY + 1}
                     C ${this.fromLabelView.labelRight + 8}  ${thisY},
                       ${this.fromLabelView.labelRight + 8}  ${thisY},
                       ${this.fromLabelView.labelRight - 1}   ${thisY}
                     L ${this.toLabelView.labelLeft}          ${thisY}
                     C ${this.toLabelView.labelLeft - 8}  ${thisY},
                       ${this.toLabelView.labelLeft - 8}  ${thisY},
-                      ${this.toLabelView.labelLeft}   ${
-                this.toLabelView.globalY - 1}
+                      ${this.toLabelView.labelLeft}   ${this.toLabelView.globalY - 1}
                 `);
       }
     }
@@ -204,7 +200,7 @@ export namespace ConnectionView {
     private renderLine() {
       this.lineElement = document.createElementNS(SVGNS, 'path');
       this.lineElement.classList.add(
-          ...this.config.connectionClasses.map(it => it + '-line'));
+        ...this.config.connectionClasses.map(it => it + '-line'));
       this.lineElement.setAttribute('fill', 'none');
       this.lineElement.style.markerEnd = 'url(#marker-arrow)';
       this.updateLine();

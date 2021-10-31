@@ -1,11 +1,11 @@
-import {Label} from "../../../Store/Label";
-import {TopContextUser} from "../Line/TopContext/TopContextUser";
-import {SVGNS} from "../../../Infrastructure/SVGNS";
-import {TopContext} from "../Line/TopContext/TopContext";
-import {View} from "../../View";
-import {Line} from "../Line/Line";
-import {Base} from "../../../Infrastructure/Repository";
-import {addAlpha} from "../../../Infrastructure/Color";
+import { Label } from "../../../Store/Label";
+import { TopContextUser } from "../Line/TopContext/TopContextUser";
+import { SVGNS } from "../../../Infrastructure/SVGNS";
+import { TopContext } from "../Line/TopContext/TopContext";
+import { View } from "../../View";
+import { Line } from "../Line/Line";
+import { Base } from "../../../Infrastructure/Repository";
+import { addAlpha } from "../../../Infrastructure/Color";
 
 export namespace LabelView {
     export interface Config {
@@ -154,6 +154,18 @@ export namespace LabelView {
             annotationElement.onclick = (event: MouseEvent) => {
                 this.view.root.emit('labelClicked', this.id, event);
             };
+
+
+            annotationElement.onmousedown = (event: MouseEvent) => {
+                this.view.root.emit('labelMouseDown', this.id, event);
+            }
+
+
+            annotationElement.onmouseup = (event: MouseEvent) => {
+                this.view.root.emit('mouseUp', this.id, event);
+            }
+
+
             annotationElement.ondblclick = (event: MouseEvent) => {
                 this.view.root.emit('labelDoubleClicked', this.id, event);
             };
@@ -161,8 +173,11 @@ export namespace LabelView {
                 this.view.root.emit('labelRightClicked', this.id, event);
                 event.preventDefault();
             };
-            annotationElement.onmouseenter = () => {
+            annotationElement.onmouseenter = (event: MouseEvent) => {
                 this.svgElement.classList.add("hover");
+
+                this.view.root.emit('labelMouseHover', true, this.id, event);
+
                 Array.from(this.store.connectionsFrom)
                     .map(it => this.view.connectionViewRepository.get(it.id!))
                     .map(it => it.addHover("from"));
@@ -170,8 +185,10 @@ export namespace LabelView {
                     .map(it => this.view.connectionViewRepository.get(it.id!))
                     .map(it => it.addHover("to"));
             };
-            annotationElement.onmouseleave = () => {
+            annotationElement.onmouseleave = (event: MouseEvent) => {
                 this.svgElement.classList.remove("hover");
+                this.view.root.emit('labelMouseHover', false, this.id, event);
+
                 Array.from(this.store.connectionsFrom)
                     .map(it => this.view.connectionViewRepository.get(it.id!))
                     .map(it => it.removeHover("from"));
